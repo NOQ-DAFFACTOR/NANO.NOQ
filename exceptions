@@ -1,0 +1,31 @@
+NOQ Mapping Exception
+
+The "mapping" section (character substitution table for mutation processes) of
+Project NANO.NOQ is explicitly EXCLUDED from the provisions of GPL-2.0.
+
+The copyright holder permits any party to:
+
+  • use the default mapping
+  • replace the mapping with another version
+  • create a custom mapping
+  • distribute binaries containing the mapping
+  • keep the mapping closed/proprietary
+
+without any obligation to disclose, release, or license the mapping
+under GPL-2.0.
+
+However, all other parts of Project NANO.NOQ must remain subject to GPL-2.0.
+
+This Mapping Exception applies only to:
+  – files containing mapping tables
+  – character substitution mechanisms
+  – accompanying reverse mapping functions
+
+This Mapping Exception does NOT apply to:
+  – mutation logic
+  – cryptographic core logic
+  – NOQ parser code / NOQ file format
+  – encode/decode workflow
+
+© 2025 [Daffactor]  
+Creator of NANO.NOQ
