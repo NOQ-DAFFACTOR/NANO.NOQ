@@ -1,0 +1,423 @@
+<!--
+This project is licensed under GPLv2.
+
+NOTE:
+The mapping table included in this file is an open-source example.
+Users may replace it with their own private mapping and are NOT required
+to publish or license their mapping under GPLv2. Private mappings may
+remain proprietary.
+-->
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Mutasi Hybrid — NOQ Final</title>
+<style>
+:root{ --bg:#000; --card:#070708; --gold:#e6b85a; --red1:#5c0f0f; --red2:#8b1212; --muted:#9aa3b2; font-family:Inter,Roboto,system-ui;}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#000,#030304);color:#e6eef6;display:flex;align-items:center;justify-content:center;padding:18px}
+.wrap{width:100%;max-width:960px}
+.card{background:linear-gradient(180deg,#050506,#0b0b0b);border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 10px 30px rgba(230,184,90,0.05)}
+h1{color:var(--gold);margin:0}
+label{color:var(--muted);font-size:13px;margin-bottom:6px;display:block}
+textarea,input{width:100%;background:transparent;border:1px solid rgba(255,255,255,0.04);padding:10px;border-radius:8px;color:inherit;font-family:monospace}
+textarea{min-height:110px;resize:vertical}
+.row{display:flex;gap:10px;align-items:center;margin-top:10px}
+.row .col{flex:1}
+.btn{background:linear-gradient(90deg,var(--red1),var(--red2));color:var(--gold);padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);padding:10px 12px;border-radius:10px;cursor:pointer}
+.output{min-height:64px;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);font-family:monospace;color:var(--gold);white-space:pre-wrap;word-break:break-word;background:transparent}
+.small{font-size:13px;color:var(--muted)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.footer{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+.key-actions{display:flex;flex-direction:column;gap:8px}
+.hidden-file-input{display:none}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>NANO.NOQ</h1>
+      <div class="small">AES-GCM + Base64URL → Mutation. Key stored as <b>.noq</b>. Cipher container <b>.noqc</b>.</div>
+
+      <div style="margin-top:12px">
+        <label>Input (plaintext for encoding / mutated for decoding)</label>
+        <textarea id="input" placeholder="Write text for ENCODE or paste mutated/ciphertext for DECODE"></textarea>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <div class="col">
+          <label>Seed (opsional)</label>
+          <input id="seed" type="text" placeholder="opsional: seed deterministik">
+        </div>
+        <div style="width:260px">
+          <label>Key (hex) — for manual decoding</label>
+          <input id="inputKey" type="text" placeholder="Enter the key (hex) to decode if necessary">
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="encodeBtn" class="btn">Encode</button>
+        <button id="decodeBtn" class="btn">Decode</button>
+        <button id="reloadBtn" class="btn-ghost">Reload</button>
+        <button id="pasteBtn" class="btn-ghost">Paste</button>
+
+        <button id="uploadNoqBtn" class="btn-ghost">Upload .noq</button>
+        <input id="noqFileInput" class="hidden-file-input" type="file" accept=".noq">
+
+        <button id="uploadNoqcBtn" class="btn-ghost">Upload .noqc</button>
+        <input id="noqcFileInput" class="hidden-file-input" type="file" accept=".noqc">
+      </div>
+    </div>
+
+    <div class="card">
+      <label>Ciphertext</label>
+      <div id="ciphertext" class="output">—</div>
+
+      <div class="row" style="margin-top:8px">
+        <button id="downloadCipherTxtBtn" class="btn-ghost">Download .txt</button>
+        <button id="uploadCipherTxtBtn" class="btn-ghost">Upload .txt</button>
+        <input id="cipherTxtInput" class="hidden-file-input" type="file" accept=".txt">
+
+        <button id="downloadNoqcBtn" class="btn-ghost">Download .noqc</button>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <button id="copyCipherBtn" class="btn-ghost">Copy Ciphertext</button>
+      </div>
+
+      <div style="margin-top:12px">
+        <label>Key (hex)</label>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div id="keyHex" class="output" style="min-height:44px;overflow-x:auto;white-space:nowrap">—</div>
+          <div class="key-actions">
+            <button id="downloadNoqBtn" class="btn-ghost">Download .noq</button>
+            <button id="copyKeyBtn" class="btn-ghost">Copy Key</button>
+            <button id="toggleKeyBtn" class="btn-ghost">Show/Hide</button>
+            <button id="clearKeyBtn" class="btn-ghost">Clear Key</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" style="justify-content:space-between;margin-top:10px">
+        <div class="small" id="status">Status: Ready</div>
+      </div>
+    </div>
+
+    <div class="footer">NANO.NOQ — Created by Daffactor.</div>
+  </div>
+
+<script>
+/* mapping */
+const mapping = {"A":["N"],"B":["J"],"C":["Z"],"D":["g"],"E":["m"],"F":["k"],"G":["4"],"H":["E"],"I":["Q"],"J":["P"],"K":["M"],"L":["a"],"M":["n"],"N":["3"],"O":["G"],"P":["W"],"Q":["Y"],"R":["f"],"S":["i"],"T":["l"],"U":["x"],"V":["9"],"W":["V"],"X":["L"],"Y":["D"],"Z":["F"],"a":["e"],"b":["r"],"c":["z"],"d":["8"],"e":["K"],"f":["S"],"g":["X"],"h":["b"],"i":["j"],"j":["s"],"k":["w"],"l":["7"],"m":["B"],"n":["H"],"o":["R"],"p":["c"],"q":["q"],"r":["u"],"s":["y"],"t":["6"],"u":["A"],"v":["I"],"w":["O"],"x":["h"],"y":["p"],"z":["t"],"0":["2"],"1":["C"],"2":["T"],"3":["U"],"4":["d"],"5":["o"],"6":["v"],"7":["5"],"8":["-"],"9":["_"],"-":["%"],"_":["$"]};
+const reverse = {}; for(const k in mapping) mapping[k].forEach(ch => reverse[ch]=k);
+
+/* seed RNG */
+function hashToSeed(s){ let h=2166136261>>>0; for(let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h,16777619)>>>0; } return h>>>0; }
+function rngFactory(seedStr, counter=0){ if(!seedStr) return {rand:()=>Math.random()}; let s = (hashToSeed(seedStr) + (counter>>>0))>>>0; return { rand:function(){ s = (Math.imul(s,1664525) + 1013904223) >>> 0; return (s & 0x7fffffff) / 0x80000000; } }; }
+
+/* Base64URL helpers */
+function bytesToBase64(bytes){ return btoa(String.fromCharCode(...new Uint8Array(bytes))); }
+function base64ToBytes(b64){ return Uint8Array.from(atob(b64), c=>c.charCodeAt(0)); }
+function base64ToBase64Url(b64){ return b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function base64UrlToBase64(b64u){ let s = b64u.replace(/-/g,'+').replace(/_/g,'/'); const pad = (4 - (s.length % 4)) % 4; if(pad) s += '='.repeat(pad); return s; }
+function bytesToBase64Url(bytes){ return base64ToBase64Url(bytesToBase64(bytes)); }
+function base64UrlDecodeToBytes(b64u){ return base64ToBytes(base64UrlToBase64(b64u)); }
+
+/* AES-GCM helpers */
+async function importKeyRaw(keyBytes){ return await crypto.subtle.importKey("raw", keyBytes, {name:"AES-GCM"}, false, ["encrypt","decrypt"]); }
+async function aesEncryptRaw(keyBytes, plaintextBytes){
+  const key = await importKeyRaw(keyBytes);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:"AES-GCM", iv:iv}, key, plaintextBytes);
+  const combined = new Uint8Array(iv.byteLength + ct.byteLength);
+  combined.set(iv,0); combined.set(new Uint8Array(ct), iv.byteLength);
+  return bytesToBase64Url(combined);
+}
+async function aesDecryptRaw(keyBytes, b64u){
+  const raw = base64UrlDecodeToBytes(b64u);
+  if(raw.length < 13) throw new Error('Ciphertext too short');
+  const iv = raw.slice(0,12);
+  const ct = raw.slice(12);
+  const key = await importKeyRaw(keyBytes);
+  const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv:iv}, key, ct);
+  return new Uint8Array(pt);
+}
+
+/* mutate/demutate */
+function mutateBase64UrlString(b64u, seed='', counter=0){
+  const rng = rngFactory(seed, counter);
+  let out = '';
+  for(const ch of b64u){
+    if(mapping.hasOwnProperty(ch)){
+      const arr = mapping[ch];
+      const pick = arr[Math.floor(rng.rand()*arr.length)];
+      out += pick;
+    } else out += ch;
+  }
+  return out;
+}
+function demutateToBase64Url(mutated){
+  let out = '';
+  for(const ch of mutated){
+    if(!reverse.hasOwnProperty(ch)) return null;
+    out += reverse[ch];
+  }
+  return out;
+}
+
+/* helpers */
+function bytesToHex(b){ return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join(''); }
+function hexToBytes(hex){
+  const cleaned = hex.replace(/\s+/g,'').replace(/^0x/i,'');
+  if(!/^[0-9a-fA-F]*$/.test(cleaned) || cleaned.length %2 !==0) throw new Error('Invalid hex');
+  return new Uint8Array(cleaned.match(/.{1,2}/g).map(h=>parseInt(h,16)));
+}
+function maskKey(hex){ if(!hex) return '—'; if(hex.length<=12) return hex; return hex.slice(0,4) + '•'.repeat(Math.max(0, hex.length-12)) + hex.slice(-8); }
+
+/* NOQ format helpers (header + len + key + HMACslice(4) + padding(32)) */
+async function sha256(bytes){ const buf = await crypto.subtle.digest('SHA-256', bytes); return new Uint8Array(buf); }
+function makeNoqBlob(keyBytes){
+  const header = new Uint8Array([0x4E,0x4F,0x51,0x01]); // 'NOQ1'
+  const len = keyBytes.length;
+  const lenBytes = new Uint8Array([(len >> 8) & 0xFF, len & 0xFF]);
+  return (async ()=>{
+    const digest = await sha256(keyBytes);
+    const hmacSlice = digest.slice(0,4);
+    const padding = crypto.getRandomValues(new Uint8Array(32));
+    const totalLen = header.length + lenBytes.length + keyBytes.length + hmacSlice.length + padding.length;
+    const out = new Uint8Array(totalLen);
+    let off = 0;
+    out.set(header, off); off += header.length;
+    out.set(lenBytes, off); off += lenBytes.length;
+    out.set(keyBytes, off); off += keyBytes.length;
+    out.set(hmacSlice, off); off += hmacSlice.length;
+    out.set(padding, off);
+    return new Blob([out], {type:'application/octet-stream'});
+  })();
+}
+async function parseNoqFile(arrayBuffer){
+  const data = new Uint8Array(arrayBuffer);
+  if(data.length < 4 + 2 + 32 + 4) throw new Error('File too short or invalid NOQ');
+  if(data[0] !== 0x4E || data[1] !== 0x4F || data[2] !== 0x51 || data[3] !== 0x01) throw new Error('Not a NOQ file');
+  const len = (data[4] << 8) | data[5];
+  if(len <=0 || len > 64) throw new Error('Invalid key length');
+  const keyStart = 6;
+  const keyEnd = keyStart + len;
+  if(keyEnd + 4 > data.length) throw new Error('Truncated NOQ file');
+  const keyBytes = data.slice(keyStart, keyEnd);
+  const hmacSlice = data.slice(keyEnd, keyEnd+4);
+  const digest = await sha256(keyBytes);
+  const expected = digest.slice(0,4);
+  for(let i=0;i<4;i++) if(expected[i] !== hmacSlice[i]) throw new Error('NOQ verification failed (integrity)');
+  return keyBytes;
+}
+
+/* NOQC format helpers (header + len + seedlen + data + HMACslice(4) + padding(32)) */
+function concatUint8(a,b){ const out = new Uint8Array(a.length + b.length); out.set(a,0); out.set(b,a.length); return out; }
+function makeNoqcBlob(mutatedCipher, seed){
+  return (async ()=>{
+    const header = new Uint8Array([0x4E,0x4F,0x51,0x43]); // 'NOQC'
+    const encoder = new TextEncoder();
+    const cipherBytes = encoder.encode(mutatedCipher);
+    const seedBytes = encoder.encode(seed || '');
+    const len = cipherBytes.length;
+    if(len > 0xFFFF) throw new Error('Ciphertext too long');
+    const lenBytes = new Uint8Array([(len >> 8) & 0xFF, len & 0xFF]);
+    const seedLen = new Uint8Array([seedBytes.length & 0xFF]);
+    const digest = await sha256(concatUint8(cipherBytes, seedBytes));
+    const hmacSlice = digest.slice(0,4);
+    const padding = crypto.getRandomValues(new Uint8Array(32));
+    const totalLen = header.length + lenBytes.length + seedLen.length + cipherBytes.length + seedBytes.length + hmacSlice.length + padding.length;
+    const out = new Uint8Array(totalLen);
+    let off = 0;
+    out.set(header, off); off += header.length;
+    out.set(lenBytes, off); off += lenBytes.length;
+    out.set(seedLen, off); off += seedLen.length;
+    out.set(cipherBytes, off); off += cipherBytes.length;
+    out.set(seedBytes, off); off += seedBytes.length;
+    out.set(hmacSlice, off); off += hmacSlice.length;
+    out.set(padding, off);
+    return new Blob([out], {type:'application/octet-stream'});
+  })();
+}
+async function parseNoqcFile(arrayBuffer){
+  const data = new Uint8Array(arrayBuffer);
+  if(data.length < 4 + 2 + 1 + 4 + 32) throw new Error('File too short or invalid NOQC');
+  if(data[0] !== 0x4E || data[1] !== 0x4F || data[2] !== 0x51 || data[3] !== 0x43) throw new Error('Not a NOQC file');
+  const len = (data[4] << 8) | data[5];
+  const seedLen = data[6];
+  const payloadStart = 7;
+  const cipherEnd = payloadStart + len;
+  const seedEnd = cipherEnd + seedLen;
+  if(seedEnd + 4 > data.length) throw new Error('Truncated NOQC file');
+  const cipherBytes = data.slice(payloadStart, cipherEnd);
+  const seedBytes = data.slice(cipherEnd, seedEnd);
+  const hmacSlice = data.slice(seedEnd, seedEnd+4);
+  const digest = await sha256(concatUint8(cipherBytes, seedBytes));
+  const expected = digest.slice(0,4);
+  for(let i=0;i<4;i++) if(expected[i] !== hmacSlice[i]) throw new Error('NOQC verification failed (integrity)');
+  const decoder = new TextDecoder();
+  return { mutatedCipher: decoder.decode(cipherBytes), seed: decoder.decode(seedBytes) };
+}
+
+/* UI refs */
+const inp = document.getElementById('input');
+const seedInput = document.getElementById('seed');
+const inputKey = document.getElementById('inputKey');
+const outCipher = document.getElementById('ciphertext');
+const outKey = document.getElementById('keyHex');
+const status = document.getElementById('status');
+const downloadNoqBtn = document.getElementById('downloadNoqBtn');
+const uploadNoqBtn = document.getElementById('uploadNoqBtn');
+const noqFileInput = document.getElementById('noqFileInput');
+const downloadNoqcBtn = document.getElementById('downloadNoqcBtn');
+const uploadNoqcBtn = document.getElementById('uploadNoqcBtn');
+let showKey=false;
+let lastText='', lastSeed='', reloadCounter=0;
+let noqKeyBytes = null; // stored key (hidden)
+let noqKeyFlag = false; // true if key originated from exported .noq (hide/copy protection)
+let noqcData = null; // {mutatedCipher, seed}
+
+function setStatus(t){ status.textContent = 'Status: ' + t; }
+
+/* ENCODE */
+document.getElementById('encodeBtn').addEventListener('click', async ()=>{
+  const text = inp.value || '';
+  if(!text.trim()){ setStatus('Error'); outCipher.textContent='⚠️ Enter text'; outKey.textContent='—'; outKey.dataset.raw=''; return; }
+  const seed = seedInput.value.trim();
+  if(seed !== lastSeed || text !== lastText) reloadCounter = 0;
+  try{
+    const keyBytes = crypto.getRandomValues(new Uint8Array(32));
+    const b64u = await aesEncryptRaw(keyBytes, new TextEncoder().encode(text));
+    const mutated = mutateBase64UrlString(b64u, seed, reloadCounter);
+    outCipher.textContent = mutated;
+    // store key and allow copy/show until exported
+    outKey.dataset.raw = bytesToHex(keyBytes);
+    outKey.textContent = maskKey(outKey.dataset.raw);
+    noqKeyBytes = keyBytes.slice(); noqKeyFlag = false; // key available for .noq download and visible/copiable
+    noqcData = { mutatedCipher: mutated, seed: seed };
+    setStatus('Encoded ✓ (use Download .noq and Download .noqc to save files)');
+    lastText = text; lastSeed = seed;
+  }catch(e){ outCipher.textContent = 'ERROR: ' + (e.message||e); setStatus('Encode Error'); }
+});
+
+/* DOWNLOAD .noq */
+downloadNoqBtn.addEventListener('click', async ()=>{
+  try{
+    const keyHex = outKey.dataset.raw || '';
+    if(!keyHex) { setStatus('No key available to save'); return; }
+    const keyBytes = hexToBytes(keyHex);
+    const blob = await makeNoqBlob(keyBytes);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    const name = 'key-' + (new Date()).toISOString().replace(/[:.]/g,'-') + '.noq'; a.download = name; a.click();
+    setStatus('.noq downloaded ✓');
+    // mark as exported: hide/copy-protect the UI value
+    noqKeyFlag = true; outKey.textContent = maskKey(outKey.dataset.raw);
+  }catch(e){ setStatus('Failed to create .noq: ' + (e.message||e)); }
+});
+
+/* DOWNLOAD .noqc */
+downloadNoqcBtn.addEventListener('click', async ()=>{
+  try{
+    if(!noqcData || !noqcData.mutatedCipher){ setStatus('No ciphertext to save'); return; }
+    const blob = await makeNoqcBlob(noqcData.mutatedCipher, noqcData.seed || '');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    const name = 'cipher-' + (new Date()).toISOString().replace(/[:.]/g,'-') + '.noqc'; a.download = name; a.click();
+    setStatus('.noqc downloaded ✓');
+  }catch(e){ setStatus('Failed to create .noqc: ' + (e.message||e)); }
+});
+
+/* DECODE */
+document.getElementById('decodeBtn').addEventListener('click', async ()=>{
+  const inputText = inp.value.trim();
+  if(!inputText && !noqcData){ setStatus('Error'); outCipher.textContent='⚠️ Enter input to decode'; return; }
+  try{
+    let usedKeyBytes = noqKeyBytes || null;
+    const provided = inputKey.value.trim().replace(/\s+/g,'').replace(/^0x/i,'');
+    if(provided) usedKeyBytes = hexToBytes(provided);
+
+    let base64u = null;
+    if(noqcData){ base64u = demutateToBase64Url(noqcData.mutatedCipher); }
+    else if(inputText){
+      const dem = demutateToBase64Url(inputText);
+      if(dem !== null) base64u = dem; else if(/^[A-Za-z0-9\-_]+$/.test(inputText)) base64u = inputText;
+    }
+
+    if(!base64u){ outCipher.textContent = '❌ Reverse mapping failed: input is not mutated or base64url.'; setStatus('Decode Error'); return; }
+    if(!usedKeyBytes){ outCipher.textContent = '⚠️ No key. Enter Key(hex) or upload .noq.'; setStatus('Decode Error'); return; }
+    const decBytes = await aesDecryptRaw(usedKeyBytes, base64u);
+    const plaintext = new TextDecoder().decode(decBytes);
+    outCipher.textContent = plaintext;
+    setStatus('Decoded ✓');
+  }catch(e){ outCipher.textContent = 'ERROR: ' + (e.message||e); setStatus('Decode Error'); }
+});
+
+/* UPLOAD .noq */
+uploadNoqBtn.addEventListener('click', ()=> noqFileInput.click());
+noqFileInput.addEventListener('change', async (ev)=>{
+  const f = ev.target.files[0]; if(!f) return;
+  try{
+    const buf = await f.arrayBuffer();
+    const keyBytes = await parseNoqFile(buf);
+    noqKeyBytes = keyBytes; noqKeyFlag = true; // hide/copy-protect
+    // update UI
+    outKey.dataset.raw = bytesToHex(keyBytes);
+    outKey.textContent = maskKey(outKey.dataset.raw);
+    setStatus('.noq loaded ✓ (key hidden)');
+    // try auto-decode only if ciphertext present (either input or noqc)
+    if((inp.value && inp.value.trim()) || noqcData) document.getElementById('decodeBtn').click();
+  }catch(e){ setStatus('Failed to load .noq: ' + (e.message||e)); }
+  ev.target.value = '';
+});
+
+/* UPLOAD .noqc */
+uploadNoqcBtn.addEventListener('click', ()=> noqcFileInput.click());
+noqcFileInput.addEventListener('change', async (ev)=>{
+  const f = ev.target.files[0]; if(!f) return;
+  try{
+    const buf = await f.arrayBuffer();
+    const parsed = await parseNoqcFile(buf);
+    noqcData = parsed; // {mutatedCipher, seed}
+    setStatus('.noqc loaded ✓ (cipher hidden)');
+    // populate output with mutated (safe) so user sees it
+    outCipher.textContent = noqcData.mutatedCipher;
+    // auto-decode if key present
+    if(noqKeyBytes) document.getElementById('decodeBtn').click();
+  }catch(e){ setStatus('Failed to load .noqc: ' + (e.message||e)); }
+  ev.target.value = '';
+});
+
+/* Ciphertext TXT download/upload */
+const downloadCipherTxtBtn = document.getElementById('downloadCipherTxtBtn');
+const uploadCipherTxtBtn = document.getElementById('uploadCipherTxtBtn');
+const cipherTxtInput = document.getElementById('cipherTxtInput');
+
+downloadCipherTxtBtn.addEventListener('click', ()=>{
+  const txt = outCipher.textContent || '';
+  if(!txt || txt==='—'){ setStatus('No ciphertext to save'); return; }
+  const blob = new Blob([txt], {type:'text/plain'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'ciphertext.txt'; a.click(); setStatus('Ciphertext .txt downloaded ✓');
+});
+
+uploadCipherTxtBtn.addEventListener('click', ()=> cipherTxtInput.click());
+cipherTxtInput.addEventListener('change', async (ev)=>{
+  const f = ev.target.files[0]; if(!f) return;
+  try{ const txt = await f.text(); inp.value = txt; outCipher.textContent = txt; noqcData = { mutatedCipher: txt, seed: '' }; setStatus('Ciphertext .txt loaded ✓'); }catch(e){ setStatus('Failed to load .txt: ' + (e.message||e)); }
+  ev.target.value = '';
+});
+
+/* Copy / Paste / Key actions */
+document.getElementById('copyCipherBtn').addEventListener('click', ()=>{ const txt = outCipher.textContent || ''; if(!txt) { setStatus('Nothing to copy'); return; } navigator.clipboard.writeText(txt).then(()=> setStatus('Ciphertext copied ✓')).catch(()=> setStatus('Copy failed')); });
+document.getElementById('copyKeyBtn').addEventListener('click', ()=>{ if(noqKeyFlag){ setStatus('Key is hidden (from .noq) — cannot copy'); return; } const hexCandidate = inputKey.value.trim() || outKey.dataset.raw || ''; if(!hexCandidate){ setStatus('No key to copy'); return; } navigator.clipboard.writeText(hexCandidate).then(()=> setStatus('Key copied ✓')).catch(()=> setStatus('Copy failed')); });
+document.getElementById('toggleKeyBtn').addEventListener('click', ()=>{ showKey = !showKey; if(outKey.dataset.raw && !noqKeyFlag) outKey.textContent = showKey ? outKey.dataset.raw : maskKey(outKey.dataset.raw); setStatus(showKey ? 'Key visible' : 'Key hidden'); });
+document.getElementById('clearKeyBtn').addEventListener('click', ()=>{ outKey.dataset.raw = ''; outKey.textContent = '—'; noqKeyBytes = null; noqKeyFlag = false; setStatus('Key cleared'); });
+document.getElementById('pasteBtn').addEventListener('click', ()=>{ navigator.clipboard.readText().then(t=>{ inp.value = t; setStatus('Pasted into input'); }).catch(()=> setStatus('Clipboard access denied')); });
+
+document.getElementById('reloadBtn').addEventListener('click', ()=>{ reloadCounter++; document.getElementById('encodeBtn').click(); });
+
+setStatus('Ready');
+</script>
+</body>
+</html>
