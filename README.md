@@ -175,3 +175,91 @@ Mapping may be **private** and is not required to be released under GPLv2.
 
 NANO.NOQ was created by **Daffactor(NOQ.DAFFACTOR)**
 through a combination of personal creativity and AI assistance in technical design, format structure, and implementation.
+
+---
+
+# 📚 References
+
+**1. AES-GCM (Authenticated Encryption)**
+
+Official standard for the AES-GCM algorithm used in NOQ:
+
+* NIST Special Publication 800-38D
+  [https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf)
+
+**2. Base64URL Encoding**
+
+Used in the ciphertext encoding process before mutation:
+
+* RFC 4648 — The Base16, Base32, and Base64 Data Encodings
+  [https://datatracker.ietf.org/doc/html/rfc4648](https://datatracker.ietf.org/doc/html/rfc4648)
+
+**3. SHA-256 (Hash Function)**
+
+Used for HMAC-slice in `.noq` and `.noqc`:
+
+* NIST FIPS 180-4 — Secure Hash Standard (SHS)
+  [https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
+
+**4. Random Number Generation**
+
+NOQ uses the browser's built-in secure RNG (`crypto.getRandomValues()`):
+
+* W3C Web Cryptography API
+  [https://www.w3.org/TR/WebCryptoAPI/](https://www.w3.org/TR/WebCryptoAPI/)
+
+**5. Blob & File Handling (for `.noq`, `.noqc`, and download/upload)**
+
+* W3C File API
+
+[https://www.w3.org/TR/FileAPI/](https://www.w3.org/TR/FileAPI/)
+
+**6. JSON Format (for external storage mapping and `.noqc` containers)**
+
+* ECMA-404 — The JSON Data Interchange Standard
+
+[https://www.ecma-international.org/publications-and-standards/standards/ecma-404/](https://www.ecma-international.org/publications-and-standards/standards/ecma-404/)
+
+**7. Unicode & Character Encoding**
+
+* WHATWG Encoding Standard
+
+[https://encoding.spec.whatwg.org/](https://encoding.spec.whatwg.org/)
+
+---
+
+# Supporting References
+
+**8. Entropy & Key Space Complexity**
+
+Mathematical explanation of the AES key space and factorial mapping:
+
+* Bruce Schneier, Applied Cryptography (Keyspace & brute-force analysis)
+  [https://www.schneier.com/books/applied-cryptography/](https://www.schneier.com/books/applied-cryptography/)
+
+**9. Modern Cryptography & Best Practices**
+
+* ENISA — Algorithms, Key Sizes and Parameters Report
+  [https://www.enisa.europa.eu/publications/algorithms-key-sizes-and-parameters-report-2021](https://www.enisa.europa.eu/publications/algorithms-key-sizes-and-parameters-report-2021)
+
+---
+
+# Contextual References
+
+**10. AES-GCM Implementation in Browsers**
+
+* MDN — `SubtleCrypto.encrypt()`
+  [https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt)
+
+**11. WebCrypto Best Practices**
+
+* Google Web Fundamentals — WebCrypto Security
+  [https://developers.google.com/web/fundamentals/security/encrypt-in-transit/webcrypto](https://developers.google.com/web/fundamentals/security/encrypt-in-transit/webcrypto)
+
+---
+
+# NOQ References (Internal)
+
+* Combination and inspiration from the original NOQ code + `.noq` format — created by Daffactor
+
+[https://blockminttalium.netlify.app/]
