@@ -1,265 +1,157 @@
 # NANO.NOQ
 NANO.NOQ description 
 
- # 🟡 NANO.NOQ — Hybrid Encryption System & Secure Key Container (.noq)
+# NANO.NOQ — File Key Container (Experimental)
 
-**NANO.NOQ** is a hybrid encryption system that combines **AES-256-GCM**, **deterministic character mutation**, and a **new key-container file format** called **`.noq`**. This project is designed to provide a simple, secure, portable, and flexible encryption experience without the need for additional software installation.
-
-NOQ aims to simplify key management, separate ciphertext from keys in accordance with modern cryptographic best practices, and provide the option of using private mappings for additional security.
+This project is purely an **experimental format design**, not a new cryptographic system.
 
 ---
 
-# 🔐 1. Hybrid Mechanism (Technical Summary)
+# 1. Overview
 
- **Encryption**
+**NANO.NOQ** is a small file format designed to store **AES‑GCM keys** separately from ciphertext. This format uses the following structure:
 
-1. Plaintext → AES-256-GCM
-2. Output `(IV || ciphertext || tag)` → Base64URL
-3. Base64URL → **substitution mutation** based on mapping
-4. AES key (32 bytes) → stored in `.noq`
+* Fixed header (`NOQ1`)
+* Key length (2 bytes)
+* Key (32 bytes by default)
+* HMAC-slice verification (4 bytes, taken from SHA‑256(key))
+* Random padding (32 bytes)
 
- **Decryption**
+The goal is to create a key file that is **portable**, **easy to install on any system**, and **verifiable for integrity** without exposing the key in the UI.
 
-1. Mutated ciphertext → reverse mutation (mapping)
-2. Base64URL → decode
-3. AES-GCM decrypt with key from `.noq`
-4. Result: plaintext
-
-The mutation is a *deterministic obfuscation layer* and **is not** a primary cryptographic component. Core security remains with AES-256-GCM.
+The `.noq` format does not add any security beyond AES‑GCM. All cryptographic security remains entirely dependent on AES‑GCM and the WebCrypto API.
 
 ---
 
-# 📁 2. `.noq` Format (Key Container)
+# 2. Why This Project Was Created
 
-`.noq` is a binary container that stores encryption keys separately and securely.
+The main purposes of creating the `.noq` format are:
 
-Structure (74 bytes for AES-256):
+1. **Personal experimentation** in designing a simple file format for key storage.
+2. Separating *ciphertext* and *key* without the need for manual copy-pasting.
+3. Creating a format that is easy for beginners to learn because the entire implementation is done in **one HTML file**.
+4. To build a system that works without a server (100% local browser).
 
-| Section            | Size | Function                          |
-| ----------------- | ------ | ------------------------------- |
-| `NOQ1` Header     | 4B     | Format identification             |
-| Key length        | 2B     | Key length                     |
-| AES-256 Key       | 32B    | Encryption key                  |
-| SHA256(key)[0..3] | 4B     | Integrity-slice (corruption check)   |
-| Random padding      | 32B    | Disguises patterns, prevents analysis |
-
-Characteristics:
-
-* Cannot be opened/read manually
-* Can only be **uploaded/downloaded**
-* Separates keys cryptographically correctly
-* Resistant to brute-force attacks due to random padding
+There is no ambition to replace industry standards or create new cryptographic algorithms.
 
 ---
 
-# 🧩 3. Mapping System (Mutation)
+# 3. Key Features
 
-Mutation uses a Base64URL-based character substitution table.
+* AES‑256‑GCM key storage in `.noq` files.
+* Integrity verification via SHA‑256(key) → 4-byte slice.
+* Random padding to prevent size inference.
+* Keys are not displayed if they originate from `.noq` (hidden mode).
+* Ciphertext can be saved as `.txt` or `.noqc` (optional).
+* The entire process takes place **client-side**, without a backend.
+* *Mutation layer* feature for light obfuscation on Base64URL (not additional cryptography).
 
-# Why is mapping important?
+---
 
-* Mapping determines the mutation result
-* Private mapping → ciphertext can only be recovered if the mapping matches
-* Even a 1-character difference in mapping → decoding is **impossible**
+# 4. Brief Overview of How It Works
 
-# Mapping complexity
+# 4.1 Encoding
 
-Number of possible mappings:
+1. Plaintext is encrypted using AES‑GCM.
+2. The result (`iv + ciphertext + tag`) is converted to Base64URL.
+3. Base64URL is mutated character-by-character using a deterministic mapping table.
+4. The key is stored as `.noq` (not displayed to the user).
+
+# 4.2 Decoding
+
+1. `.noq` file is uploaded → key is extracted & verified.
+2. Mutated ciphertext → reverse–mutate → Base64URL.
+3. AES‑GCM decrypt → plaintext.
+
+---
+
+# 5. `.noq` File Format (Summary)
 
 ```
-64!  ≈ 1.27 × 10^90
+[ 4 bytes ]   Header "NOQ1"
+[ 2 bytes ]   Length L (default 0x0020)
+[ L bytes ]   Raw AES-GCM key
+[ 4 bytes ]   SHA256(key)[0..3] (integrity check)
+[32 bytes ]   Random padding
 ```
 
-This means that brute-force mapping is **practically impossible**.
-
-# Mapping storage modes
-
-1. **Internal (public mapping)**
-
-   * Simple, suitable for public use
-   * Not suitable for high-level confidential data
-
-2. **External (private mapping)**
-
-   * Stored separately, such as in `mapping.json`
-   * More secure and flexible
-   * If lost ⇒ ciphertext cannot be recovered permanently
+The file can be analyzed, but cannot be opened as text because it is stored in binary form.
 
 ---
 
-# 📦 4. `.noqc` Format (Ciphertext Container) — *Optional*
+# 6. About Mutation Mapping
 
-`.noqc` stores mutated ciphertext as a structured binary container (like `.noq` but for ciphertext).
+Mutation is **light obfuscation**, not a cryptographic security mechanism.
 
-Structure:
+* Mapping can be completely changed by the user.
+* Mapping does not have to be open-source.
+* Different mappings cause incompatible ciphertext.
+* It is best to keep mapping separate from the public repository.
 
-* `NOQC` header
-* Cipher length
-* Seed length
-* Mutated ciphertext
-* Seed
-* SHA256(slice)
-* Padding
-
-Purpose:
-
-* Avoid copy-pasting ciphertext
-* Package ciphertext like a regular file
+This project remains cryptographically secure because *security does not depend on the mapping*, but on AES‑GCM.
 
 ---
 
-# 📊 5. Overhead Calculation and Size
+# 7. Limitations
 
-Example plaintext 100 bytes produces:
+* `.noq` is **not** a standard security format.
+* Mutations do not add cryptographic security.
+* AES‑GCM is the only real layer of security.
+* Browser implementations have WebCrypto limitations.
+* Not suitable for production or high-risk applications.
+* The project is **experimental**.
 
-* AES-GCM output: 128 bytes
-* Base64URL: 172 characters
-* `.noqc`: ~223 bytes
-* `.noq`: 74 bytes
+---
 
-Overhead:
+# 8. How to Use
+
+1. Open `index.html` directly in your browser.
+2. Enter text → *Encode*.
+3. Download the key (`.noq`).
+4. Save the ciphertext (`.txt`).
+5. To decode, upload `.noq` + ciphertext.
+
+No internet or server is involved in the processing.
+
+---
+
+# 9. Project Status
+
+* **Experimental.**
+* Unstable and not recommended for real security.
+* Focused on learning, prototyping, and exploring file formats.
+
+---
+
+# 10. Technical References
+
+* AES‑GCM: NIST SP 800‑38D
+* WebCrypto API — W3C
+* Base64URL Encoding — RFC 4648
+* SHA‑256 — FIPS PUB 180‑4
+* Randomness via `crypto.getRandomValues()` — MDN
+
+---
+
+# 11. License
+
+The project follows **GPLv2**, except for the **mapping** part, which is freely modifiable privately.
+
+> "Mapping table may remain proprietary. All other source code is GPLv2."
+
+---
+
+# 12. Repository Structure (Summary)
 
 ```
-Overhead ≈ 29–30%
+/
+ └── index.html   → all code (UI + AES-GCM + mutation + NOQ)
 ```
 
-Reasonable value for a secure container.
+The `.noq` and `.noqc` formats are generated at runtime.
 
 ---
 
-# 🔒 6. Security & Transparency
+# 13. Creator
 
-**Core security comes from AES-256-GCM**, including 16-byte Tag authentication.
-
-Mutations:
-
-* Add visual confusion & make ciphertext unclear
-* However, **not the primary cryptographic layer**
-
-HMAC-slice:
-
-* 4 bytes fast for corruption detection
-* Not a replacement for full MAC
-* For critical systems, use real HMAC or separate signature
-
----
-
-# ⭐ 7. Advantages of NANO.NOQ
-
-* Keys and ciphertext are **completely separated**
-* `.noq` hides keys without the risk of "view-copy-paste"
-* Mutations can use private mappings
-* Runs 100% in the browser (no installation required)
-* Can be used for modern cryptography education
-* `.noq` / `.noqc` containers are simple and portable
-
----
-
-# ⚠️ 8. Limitations
-
-* Mutation = obfuscation, not formal cryptography
-* Lost mapping = data cannot be recovered
-* `.noq` is not a replacement for HSM or enterprise systems
-* Requires audit if used in sensitive industries (banking/fintech)
-
----
-
-# 📜 9. License
-
-The project is released under **GPLv2**.
-Mapping may be **private** and is not required to be released under GPLv2.
-
----
-
-# 👤 10. Creator
-
-NANO.NOQ was created by **Daffactor(NOQ.DAFFACTOR)**
-through a combination of personal creativity and AI assistance in technical design, format structure, and implementation.
-
----
-
-# 📚 References
-
-**1. AES-GCM (Authenticated Encryption)**
-
-Official standard for the AES-GCM algorithm used in NOQ:
-
-* NIST Special Publication 800-38D
-  [https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf)
-
-**2. Base64URL Encoding**
-
-Used in the ciphertext encoding process before mutation:
-
-* RFC 4648 — The Base16, Base32, and Base64 Data Encodings
-  [https://datatracker.ietf.org/doc/html/rfc4648](https://datatracker.ietf.org/doc/html/rfc4648)
-
-**3. SHA-256 (Hash Function)**
-
-Used for HMAC-slice in `.noq` and `.noqc`:
-
-* NIST FIPS 180-4 — Secure Hash Standard (SHS)
-  [https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
-
-**4. Random Number Generation**
-
-NOQ uses the browser's built-in secure RNG (`crypto.getRandomValues()`):
-
-* W3C Web Cryptography API
-  [https://www.w3.org/TR/WebCryptoAPI/](https://www.w3.org/TR/WebCryptoAPI/)
-
-**5. Blob & File Handling (for `.noq`, `.noqc`, and download/upload)**
-
-* W3C File API
-
-[https://www.w3.org/TR/FileAPI/](https://www.w3.org/TR/FileAPI/)
-
-**6. JSON Format (for external storage mapping and `.noqc` containers)**
-
-* ECMA-404 — The JSON Data Interchange Standard
-
-[https://www.ecma-international.org/publications-and-standards/standards/ecma-404/](https://www.ecma-international.org/publications-and-standards/standards/ecma-404/)
-
-**7. Unicode & Character Encoding**
-
-* WHATWG Encoding Standard
-
-[https://encoding.spec.whatwg.org/](https://encoding.spec.whatwg.org/)
-
----
-
-# Supporting References
-
-**8. Entropy & Key Space Complexity**
-
-Mathematical explanation of the AES key space and factorial mapping:
-
-* Bruce Schneier, Applied Cryptography (Keyspace & brute-force analysis)
-  [https://www.schneier.com/books/applied-cryptography/](https://www.schneier.com/books/applied-cryptography/)
-
-**9. Modern Cryptography & Best Practices**
-
-* ENISA — Algorithms, Key Sizes and Parameters Report
-  [https://www.enisa.europa.eu/publications/algorithms-key-sizes-and-parameters-report-2021](https://www.enisa.europa.eu/publications/algorithms-key-sizes-and-parameters-report-2021)
-
----
-
-# Contextual References
-
-**10. AES-GCM Implementation in Browsers**
-
-* MDN — `SubtleCrypto.encrypt()`
-  [https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt)
-
-**11. WebCrypto Best Practices**
-
-* Google Web Fundamentals — WebCrypto Security
-  [https://developers.google.com/web/fundamentals/security/encrypt-in-transit/webcrypto](https://developers.google.com/web/fundamentals/security/encrypt-in-transit/webcrypto)
-
----
-
-# NOQ References (Internal)
-
-* Combination and inspiration from the original NOQ code + `.noq` format — created by Daffactor
-
-[https://blockminttalium.netlify.app/]
+The NANO.NOQ project was developed as a personal experiment by Daffactor with the help of AI, focusing on format design, education, and exploration of simple key storage mechanisms. 
