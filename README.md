@@ -159,5 +159,5 @@ The NANO.NOQ project was developed as a personal experiment by Daffactor with th
 ---
 
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/NAMA_KAMU)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/post/Sponsored-P5P01PQ2BZ)
 
