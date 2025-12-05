@@ -155,3 +155,9 @@ The `.noq` and `.noqc` formats are generated at runtime.
 # 13. Creator
 
 The NANO.NOQ project was developed as a personal experiment by Daffactor with the help of AI, focusing on format design, education, and exploration of simple key storage mechanisms. 
+
+---
+
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/NAMA_KAMU)
+
